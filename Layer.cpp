@@ -75,8 +75,6 @@ void Layer::Init(int input_dim, int output_dim) { //outut_dim 이 자기 레이어 노�
 	}
 
 }
-
-
 void Layer::Delete() {
 	if (aOutput != NULL) {
 		delete[] aOutput;
