@@ -1,3 +1,5 @@
+#ifndef __Layer__
+#define __Layer__
 
 #ifndef TRUE
 #define TRUE 1
@@ -29,9 +31,13 @@ public:
 	~Layer() { Delete(); }
 
 	float* Get_Output() { return aOutput; }
-
 	float* Get_DeltaBar() { return aDeltaBar; } //delta-bar를 참조할 수 있는 포인터 제공
-
+	float* Get_Input() { return pInput; }
+	float* Get_Weight() { return aWeight; }
+	float* Get_Gradient() { return aGradient; }
+	int Get_InputDim() { return inputDim; }
+	int Get_OutputDim() { return outputDim; }
+	
 
 	void Propagate(float* input_pointer); //Propagate 해주는 함수 
 
@@ -46,3 +52,4 @@ public:
 
 	float Compute_Error(float* desired_output);
 };
+#endif // !__Layer__

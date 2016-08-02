@@ -1,3 +1,5 @@
+#ifndef __NeuralNetwork__
+#define __NeuralNetwork__
 
 class NeuralNetwork {
 private:
@@ -26,3 +28,4 @@ public:
 	float* Get_Output() { return aLayer[numberOfLayer - 1].Get_Output(); }
 };
 
+#endif // !__NeuralNetwork__
