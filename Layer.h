@@ -20,14 +20,14 @@ private:
 	float* aDelta; // pointer of delta. Error를 net으로 미분한 것, so the dimension will be same with outputDim 
 	float* aDeltaBar; // pointer of delta-bar. Error를 output으로 미분한 것, so the dimension will be same with outputDim
 
-	void Delete();
+	
 public:
 	Layer();
 	Layer(int inDim, int outDim);
 
 	void Init(int inDim, int outDim); // Layer 생성될 때에, setting 해주어야 할 것들.
 	int Is_Inited() { return aWeight != NULL; } // Weight가 init됐으면(!=null) 1, init안됐으면(==null) 0 return 한다.
-
+	void Delete();
 	
 	~Layer() { Delete(); }
 
