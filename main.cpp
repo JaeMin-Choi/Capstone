@@ -258,7 +258,7 @@ void call_StackedAE(){
 			float *pinput = myStackedAE.Get_Input(number);
 			if (number == 0) {
 				for (int k = 0; k < inputDim; k++) {
-					fprintf(myfile, "\t(%f, %f)\n", training_data[number][k], reprod[k]);
+					fprintf(myfile, "\t(%f, %f)\n", pinput[k], reprod[k]);
 				}
 			}
 			else {
