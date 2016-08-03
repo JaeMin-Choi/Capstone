@@ -32,11 +32,15 @@ void SimpleAutoEncoder::Init(int encode_inputDim, int encode_outputDim) {
 }
 
 void SimpleAutoEncoder::Delete() {
-	delete pEncoder;
-	pEncoder = NULL;
+	if (pEncoder != NULL) {
+		delete pEncoder;
+		pEncoder = NULL;
+	}
 
-	delete pDecoder;
-	pDecoder = NULL;
+	if (pDecoder != NULL) {
+		delete pDecoder;
+		pDecoder = NULL;
+	}
 }
 
 
