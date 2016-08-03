@@ -102,6 +102,7 @@ void Layer::Delete() {
 	}
 	inputDim = 0;
 	outputDim = 0;
+
 }
 
 
