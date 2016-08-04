@@ -20,13 +20,15 @@ void call_NN();
 void call_SimpleAE();
 void call_StackedAE();
 
-
+void call_StackedAEwithNN();
 
 int main(int argc, char* argv[]) {
 //	call_NN();
 //	call_SimpleAE();
 
-	call_StackedAE();
+//	call_StackedAE();
+
+	call_StackedAEwithNN();
 	return 0;
 }
 
@@ -269,4 +271,163 @@ void call_StackedAE(){
 		}
 	}
 	fclose(myfile);
+}
+
+
+
+
+void call_StackedAEwithNN() {
+	// training data
+	float training_data[10][28] = {
+		{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1 }
+	};
+
+	float desired_data[10][2] = {
+		{ 1, 0 },
+		{ 1, 0 },
+		{ 1, 0 },
+		{ 1, 0 },
+		{ 1, 0 },
+		{ 0, 1 },
+		{ 0, 1 },
+		{ 0, 1 },
+		{ 0, 1 },
+		{ 0, 1 }
+	};
+
+	int data_size = 10;
+	int inputDim = 28;
+
+	int batch_size = 1;
+
+
+	int num_AE = 3;
+	int eachEncoder_outDim[] = { 15,10,5 };
+	StackedAutoEncoder myStackedAE(num_AE, inputDim, eachEncoder_outDim);
+	
+	int num_NN = 2;
+	int eachLayer_outputDim[] = { 4,2 };
+
+	NeuralNetwork myNN(eachEncoder_outDim[num_AE - 1], num_NN, eachLayer_outputDim);
+
+	FILE* myfile = fopen("stakced with nn result.txt", "w");
+
+	printf("Start Training Stacked-AutoEncoder \n");
+	fprintf(myfile, "Start Training Stacked-AutoEncoder \n");
+
+	for (int idx = 0; idx < num_AE; idx++) {
+		int for_breaking = 1;
+		for (int epoch = 0; epoch < MAX_EPOCH && for_breaking == 1; epoch++) {
+			float error = 0.f;
+			for (int i = 0; i < data_size; i++) {
+				myStackedAE.Back_Propagate(training_data[i], idx);
+				error += myStackedAE.Get_Reproduct_Error(idx);
+			}
+
+			error /= data_size;
+			if (error < MAX_ERROR) {
+				for_breaking = 0;
+				break;
+			}
+			myStackedAE.Weight_Update(LEARNING_RATE, idx);
+
+
+
+			if ((epoch + 1) % 100 == 0) {
+				printf("%d-th autoencoder, epoch = %d, error = %f \n", idx + 1, epoch + 1, error);
+				fprintf(myfile, "%d-th autoencoder, epoch = %d, error = %f \n", idx + 1, epoch + 1, error);
+			}
+		}
+	}
+
+
+
+	printf("Finish Training Stacked-AutoEncoder \n\n");
+	fprintf(myfile, "Finish Training Stacked-AutoEncoder \n\n");
+
+
+	printf("Testing Stacked-AutoEncoder\n");
+	fprintf(myfile, "Testing Stacked-AutoEncoder\n");
+
+	for (int number = 0; number < num_AE; number++) {
+		fprintf(myfile, "\n\n%d-th autoencoder testing \n", number + 1);
+		for (int j = 0; j < data_size; j++) {
+			myStackedAE.Decoding(training_data[j], number);
+			float *encoded = myStackedAE.Get_Encoding_Result(number);
+			float *reprod = myStackedAE.Get_Decoding_Result(number);
+			float *pinput = myStackedAE.Get_Input(number);
+			if (number == 0) {
+				for (int k = 0; k < inputDim; k++) {
+					fprintf(myfile, "\t(%f, %f)\n", pinput[k], reprod[k]);
+				}
+			}
+			else {
+				for (int k = 0; k < eachEncoder_outDim[number]; k++) {
+					fprintf(myfile, "\t(%f, %f)\n", pinput[k], reprod[k]);
+				}
+			}
+		}
+	}
+
+
+
+	
+
+
+	
+	printf("\n\nStart Training Neural-Netwrok \n");
+	fprintf(myfile, "\n\nStart Training Neural-Netwrok \n");
+
+	for (int epoch = 0; epoch < MAX_EPOCH; epoch++) {
+		float error = 0.f;
+
+		for (int i = 0; i < data_size; i++) {
+			myStackedAE.Decoding(training_data[i], num_AE - 1);
+			myNN.Back_Propagate(myStackedAE.Get_Encoding_Result(num_AE-1), desired_data[i]);
+			error += myNN.Get_Error(desired_data[i]);
+		}
+		error /= data_size;
+
+		myNN.Weight_Update(LEARNING_RATE);
+		if ((epoch + 1) % 100 == 0) {
+			printf("epoch = %d, error = %f \n", epoch + 1, error);
+			fprintf(myfile, "epoch = %d, error = %f \n", epoch + 1, error);
+		}
+
+		if (error < MAX_ERROR)
+			break;
+	}
+
+	printf("Finish Neural-Network Training \n\n");
+	fprintf(myfile, "Finish Neural-Network Training \n\n");
+
+	printf("Test Neural-Network \n");
+	fprintf(myfile, "Test Neural-Network \n");
+
+	for (int i = 0; i < data_size; i++) {
+		myStackedAE.Decoding(training_data[i], num_AE - 1);
+		myNN.Propagate(myStackedAE.Get_Encoding_Result(num_AE - 1));
+		float* pOutput = myNN.Get_Output();
+		float* pHidden = myNN[0].Get_Output();
+
+		for (int j = 0; j < eachLayer_outputDim[num_NN-1]; j++) {
+			fprintf(myfile, "\t%f %f\n", desired_data[i][j], pOutput[j]);
+		}
+
+
+	/*	printf("test%d: (%f %f) --> (%f %f %f %f) --> %f\n", i, train_data[i][0], train_data[i][1], pHidden[0], pHidden[1], pHidden[2], pHidden[3], pOutput[0]);
+		fprintf(myfile, "test%d: (%f %f) --> (%f %f %f %f) --> %f\n", i, train_data[i][0], train_data[i][1], pHidden[0], pHidden[1], pHidden[2], pHidden[3], pOutput[0]);
+	*/}
+
+	fclose(myfile);
+
 }
